@@ -1,4 +1,7 @@
 from tkinter import *
+import tkinter.messagebox as msgbox
+import keyboard
+
 import numpy as np
 from random import randrange
 from math import sqrt, pi
@@ -7,36 +10,47 @@ window = Tk()
 window.title('n-body simulator')
 
 
+t = 0
+
+def endSpace():
+    global t
+
+    msgbox.showinfo('중지', '우주가 {0}일 동안 진행되었습니다.'.format(t))
+    t = -1
+
+
 space = Canvas(window, width=700, height=700, bg='black')
-space.grid(row=0, column=0)
+space.pack()
+
+quitBtn = Button(window, text='닫기', width=20, height=2, command=endSpace)
+quitBtn.pack(side='right')
 
 G = 0.01                                                        # gravitational constant
 Bodies = []                                                     # list of Bodies
 
+
 class Body:
-    def __init__(self, m, x, y, V):
+    def __init__(self, m, P, V):
         self.m = m                                              # m
-        self.x = x                                              # x coordination
-        self.y = y                                              # y coordination
-        self.P = np.array([self.x, self.y], dtype=float)        # position (x, y coordination)
+        self.P = np.array(P, dtype=float)                       # position (x, y coordination)
         self.V = np.array(V, dtype=float)                       # velocity
         self.r = (self.m / pi) ** (1/3)                         # radius
 
-    def Fg(self, interaction):
+    def newton(self, interaction):
         if self == interaction:
             self.dV = np.array([0, 0], dtype=float)
         else:
-            distance = sqrt((self.P[0] - interaction.P[0]) ** 2 + (self.P[1] - interaction.P[1]) ** 2)
+            self.distance = sqrt((self.P[0] - interaction.P[0]) ** 2 + (self.P[1] - interaction.P[1]) ** 2)
             self.dV = np.array([0, 0], dtype=float)
 
-            if distance == 0:
+            if self.distance == 0:
                 self.dV = 0
             else:
-                self.F = (-G * self.m * interaction.m / distance ** 2) * (self.P - interaction.P) / distance
+                self.F = (-G * self.m * interaction.m / self.distance ** 2) * (self.P - interaction.P) / self.distance
                 self.dV = self.F / self.m
 
-                if distance < self.r + interaction.r + 5:
-                    self.dV *= -1
+                if self.distance < self.r + interaction.r + 5:
+                    self.dV *= -0.5
 
         self.V += self.dV
 
@@ -54,21 +68,19 @@ class Body:
             self.P[1] -= 1
 
 
-B = 2
+number = 25
 
-for i in range(B):
-    Bodies.append(Body(randrange(100, 1000), randrange(50, 650), randrange(50, 650), [(randrange(-1, 1) / 20), (randrange(-1, 1) / 20)]))
+for i in range(number):
+    Bodies.append(Body(randrange(100, 1000), [randrange(50, 650), randrange(50, 650)], [0, 0]))
 
-T = 0
-Tx = True
-while Tx == True:
-    T += 1
+while t != -1:
+    t += 1
 
     space.delete('all')
 
     for Body1 in Bodies:
         for Body2 in Bodies:
-            Body1.Fg(Body2)
+            Body1.newton(Body2)
             Body1.P += Body1.V
 
         if Body1.P[0] < 5:
@@ -84,8 +96,5 @@ while Tx == True:
         space.create_oval(Body1.P[0] - Body1.r, Body1.P[1] - Body1.r, Body1.P[0] + Body1.r, Body1.P[1] + Body1.r, fill='skyblue')
 
     space.update()
-
-    if T == 100000:
-        Tx = False
 
 window.mainloop()
