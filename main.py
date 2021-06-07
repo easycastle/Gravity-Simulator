@@ -11,21 +11,16 @@ window.title('n-body simulator')
 
 
 t = 0
+time = StringVar()
 
-def endSpace():
-    global t
-
-    msgbox.showinfo('중지', '우주가 {0}일 동안 진행되었습니다.'.format(t))
-    t = -1
+timeLabel = Label(window, textvariable=time, height=3)
+timeLabel.pack(side='top', fill='x')
 
 
 space = Canvas(window, width=700, height=700, bg='black')
 space.pack()
 
-quitBtn = Button(window, text='닫기', width=20, height=2, command=endSpace)
-quitBtn.pack(side='right')
-
-G = 0.01                                                        # gravitational constant
+G = 0.001                                                        # gravitational constant
 Bodies = []                                                     # list of Bodies
 
 
@@ -33,7 +28,11 @@ class Body:
     def __init__(self, m, P, V):
         self.m = m                                              # m
         self.P = np.array(P, dtype=float)                       # position (x, y coordination)
+        self.Px = P[0]                                          # x coordination
+        self.Py = P[1]                                          # y coordination
         self.V = np.array(V, dtype=float)                       # velocity
+        self.Vx = V[0]                                          # x velocity
+        self.Vy = V[1]                                          # y velocity
         self.r = (self.m / pi) ** (1/3)                         # radius
 
     def newton(self, interaction):
@@ -68,13 +67,14 @@ class Body:
             self.P[1] -= 1
 
 
-number = 25
+number = 20
 
 for i in range(number):
-    Bodies.append(Body(randrange(100, 1000), [randrange(50, 650), randrange(50, 650)], [0, 0]))
+    Bodies.append(Body(randrange(500, 1000), [randrange(50, 650), randrange(50, 650)], [randrange(-1, 1)/100, randrange(-1, 1)/100]))
 
 while t != -1:
     t += 1
+    time.set('T : {0} h'.format(t))
 
     space.delete('all')
 
@@ -96,5 +96,7 @@ while t != -1:
         space.create_oval(Body1.P[0] - Body1.r, Body1.P[1] - Body1.r, Body1.P[0] + Body1.r, Body1.P[1] + Body1.r, fill='skyblue')
 
     space.update()
+
+window.quit()
 
 window.mainloop()
